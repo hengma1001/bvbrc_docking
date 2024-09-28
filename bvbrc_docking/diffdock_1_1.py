@@ -54,6 +54,10 @@ class diff_dock(object):
 
         self.top_n = top_n
         self.batch_size = batch_size
+        
+
+        self.env = os.environ.copy()
+        self.env['PYTHONPATH'] = self.diffdock_dir + ":" + self.env.get("PYTHONPATH", "")
 
     def prepare_inputs(self):
         inputs = []
@@ -104,13 +108,14 @@ class diff_dock(object):
         # Run with -u to enable line-buffering so we can see the errors aligned with
         # the stdout for better debugging.
         #
+
         cmd_diffdock = [
             "python",
-            "-u",
-            "-m", "inference",
+            "-u", "-m", "inference",
+            "--config", f"{self.diffdock_dir}/default_inference_args.yaml",
             "--protein_ligand_csv", self.all_runs,
             "--out_dir", self.run_dir,
-            "--bad_ligands", f"{self.run_dir}/bad-ligands.txt"
+            # "--bad_ligands", f"{self.run_dir}/bad-ligands.txt"
             ]
 
         if self.batch_size > 0:
@@ -120,7 +125,7 @@ class diff_dock(object):
         # f"--inference_steps 20 --samples_per_complex 40 --batch_size 6"
 
         proc = run_list_and_save(
-            cmd_diffdock, cwd=self.diffdock_dir, output_file=self.log_handle
+            cmd_diffdock, cwd=self.run_dir, output_file=self.log_handle, env=self.env
         )
 
     def post_process(self, input_set):
@@ -133,7 +138,7 @@ class diff_dock(object):
             result_path = f"{self.run_dir}/{ident}"
 
             for file in os.listdir(result_path):
-                m = re.match(r"rank(\d+)_confidence-(\d+\.\d+).sdf", file)
+                m = re.match(r"rank(\d+)_confidence(\d\.\d+).sdf", file)
                 if m:
                     rank, confidence = m.group(1, 2)
 

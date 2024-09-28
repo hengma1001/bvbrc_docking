@@ -212,7 +212,7 @@ def run_and_save(cmd, cwd=None, output_file=None):
         sys.exit(1)
     return process
 
-def run_list_and_save(cmd, cwd=None, output_file=None):
+def run_list_and_save(cmd, cwd=None, output_file=None, **kwargs):
     print(cmd, file=output_file)
     process = subprocess.Popen(
         cmd,
@@ -220,6 +220,7 @@ def run_list_and_save(cmd, cwd=None, output_file=None):
         cwd=cwd,
         stdout=output_file,
         stderr=subprocess.STDOUT,
+        **kwargs,
     )
     rc = process.wait()
     if rc != 0:
