@@ -138,7 +138,7 @@ class diff_dock(object):
             result_path = f"{self.run_dir}/{ident}"
 
             for file in os.listdir(result_path):
-                m = re.match(r"rank(\d+)_confidence(\d\.\d+).sdf", file)
+                m = re.match(r"rank(\d+)_confidence(-?\d\.\d+).sdf", file)
                 if m:
                     rank, confidence = m.group(1, 2)
 
