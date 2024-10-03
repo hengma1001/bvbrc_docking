@@ -141,25 +141,26 @@ class diff_dock(object):
             # env=self.env,
         )
 
+    def cal_cnn_aff_p(self, sdf_file):
+        mol = cal_cnn_aff(
+            self.pdb_file,
+            sdf_file,
+            gnina_exe="gnina",
+            log_handle=None,
+        )
+        if mol is not None:
+            return [
+                str(mol.data["CNNscore"]),
+                str(mol.data["CNNaffinity"]),
+                str(mol.data["minimizedAffinity"]),
+            ]
+        else:
+            return None
+
     def post_process(self, input_set):
         #
         # Results are in directories named by the identifiers
         #
-        def cal_cnn_aff_p(sdf_file):
-            mol = cal_cnn_aff(
-                self.pdb_file,
-                sdf_file,
-                gnina_exe="gnina",
-                log_handle=None,
-            )
-            if mol is not None:
-                return [
-                    str(mol.data["CNNscore"]),
-                    str(mol.data["CNNaffinity"]),
-                    str(mol.data["minimizedAffinity"]),
-                ]
-            else:
-                return None
 
         for ident, smiles_str in tqdm(input_set):
             by_rank = []
@@ -215,7 +216,7 @@ class diff_dock(object):
                 )
 
                 with Pool(self.num_gnina) as p:
-                    scores = p.map(cal_cnn_aff_p, [i[1] for i in by_rank])
+                    scores = p.map(self.cal_cnn_aff_p, [i[1] for i in by_rank])
 
                 for entry, score in zip(by_rank, scores):
                     ident, path, rank, confidence, combined_path = entry
