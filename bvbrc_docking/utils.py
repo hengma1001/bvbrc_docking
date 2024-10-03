@@ -212,6 +212,7 @@ def run_and_save(cmd, cwd=None, output_file=None):
         sys.exit(1)
     return process
 
+
 def run_list_and_save(cmd, cwd=None, output_file=None, **kwargs):
     print(cmd, file=output_file)
     process = subprocess.Popen(
@@ -336,6 +337,8 @@ def cal_cnn_aff(pdb_file, sdf_file, gnina_exe="gnina", log_handle=None):
         f"--autobox_ligand {sdf_file}  "
         f"--autobox_add 2 -o {output_sdf} "
     )
+    if log_handle is None:
+        log_handle = open(f"{tempdir.name}/temp.log", "w")
     run_and_save(cmd, output_file=log_handle)
 
     try:
