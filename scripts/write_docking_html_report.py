@@ -7,6 +7,7 @@ import sys
 
 from pathlib import Path
 
+## TO DO: in report refactor make this template less redundant 
 
 def check_RDKit_invalid_ligands(input_details_dict):
     lig_failed_rdkit = os.path.join(input_details_dict["staging_dir"], "invalid_smile_strings.txt")
@@ -14,6 +15,20 @@ def check_RDKit_invalid_ligands(input_details_dict):
     path = Path(lig_failed_rdkit)
     if path.is_file() and path.stat().st_size > 0:
         invalid_ligs_df = pd.read_csv(lig_failed_rdkit, sep='\t', header=None, names=['Ligand ID', 'SMILE'])
+        # match up the invalid ligands with the sample names according to the IDs
+        three_col_ws_file = os.path.join(input_details_dict["staging_dir"],"three_col_ws_file.txt")
+        if input_details_dict["params"]["ligand_library_type"] == "named_library" or os.path.exists(three_col_ws_file):
+            # if names are available  match them up with the data
+            info_file = os.path.join(input_details_dict["staging_dir"], "info.txt")
+            three_col_df = pd.read_csv(info_file, sep='\t', header=None)
+            three_col_df.columns = ["Ligand ID", "Names_col", "Smile String"]
+            invalid_ligs_df = pd.merge(three_col_df, invalid_ligs_df, on="Ligand ID", how="left")
+            # drop any rows where names exist but they aren't dd failed ligands
+            invalid_ligs_df.dropna(inplace=True)
+            invalid_ligs_df["drugbank_database_URL"] = "https://go.drugbank.com/drugs/" + invalid_ligs_df["Ligand ID"]
+            invalid_ligs_df["Names"] ='<a href="' + invalid_ligs_df["drugbank_database_URL"] + '" target="_blank">' + invalid_ligs_df['Names_col'] + '</a>'
+            invalid_ligs_df = invalid_ligs_df.drop(columns=["Names_col", "drugbank_database_URL", "Smile String"])
+            invalid_ligs_df = invalid_ligs_df[["Ligand ID", "Names", "SMILE"]]
         lig_failed_rdkit_table_html = generate_table_html_2(invalid_ligs_df, table_width='95%')
         rdkit_failed_ligands_html = """
         <h3> RDKit Non-compliant Ligands </h3>
@@ -46,10 +61,23 @@ def check_dd_invalid_ligands(input_details_dict, input_ligand_dict):
                     ligand_id = line.split()[1]
                     smile = input_ligand_dict[ligand_id]
                     # Append the key-value pair as a dictionary to the list
-                    dd_failed_ligands.append({'Ligand ID': ligand_id, 'Smile': smile})
+                    dd_failed_ligands.append({'Ligand ID': ligand_id, 'SMILE': smile})
                     # match with the smile string to match the other tables
-        dd_failed_ligands_df = pd.DataFrame(dd_failed_ligands)
-        lig_failed_DD_table_html = generate_table_html_2(dd_failed_ligands_df, table_width='95%')
+        df_dd_failed_ligands = pd.DataFrame(dd_failed_ligands)
+        three_col_ws_file = os.path.join(input_details_dict["staging_dir"],"three_col_ws_file.txt")
+        if input_details_dict["params"]["ligand_library_type"] == "named_library" or os.path.exists(three_col_ws_file):
+            # if names are available  match them up with the data
+            three_col_df = pd.read_csv(three_col_ws_file, sep='\t', header=None)
+            three_col_df.columns = ["Ligand ID", "Names_col", "Smile String"]
+            df_dd_failed_ligands = pd.merge(three_col_df, df_dd_failed_ligands, on="Ligand ID", how="left")
+            # drop any rows where names exist but they aren't dd failed ligands
+            df_dd_failed_ligands.dropna(inplace=True)
+            df_dd_failed_ligands["drugbank_database_URL"] = "https://go.drugbank.com/drugs/" + df_dd_failed_ligands["Ligand ID"]
+    
+            df_dd_failed_ligands["Names"] ='<a href="' + df_dd_failed_ligands["drugbank_database_URL"] + '" target="_blank">' + df_dd_failed_ligands['Names_col'] + '</a>'
+            df_dd_failed_ligands = df_dd_failed_ligands.drop(columns=["Names_col", "drugbank_database_URL", "Smile String"])
+            df_dd_failed_ligands = df_dd_failed_ligands[["Ligand ID", "Names", "SMILE"]]
+        lig_failed_DD_table_html = generate_table_html_2(df_dd_failed_ligands, table_width='95%')
         dd_failed_ligands_html = """
         <h3> DiffDock Undocked Ligands </h3>
         <p> Ligands in this table did not dock to the protein. This coud be because they are incompatible with the protein or the current version of DiffDock. \
@@ -178,14 +206,19 @@ def parse_sample_results(input_details_dict, input_ligand_dict):
                     }
                      )
     dff = dff.round(3)
-    if input_details_dict["params"]["ligand_library_type"] == "named_library":
-        ligand_lib_info = os.path.join(input_details_dict["staging_dir"], "info.txt")
-        ligand_lib_dict = load_data_to_dict(ligand_lib_info)
-        # Adding the 'names' column based on the ligand id
-        dff['Names'] = dff["Ligand ID"].map(ligand_lib_dict)
+    # check for a ws file with three columns 
+    three_col_ws_file = os.path.join(input_details_dict["staging_dir"],"three_col_ws_file.txt")
+    if input_details_dict["params"]["ligand_library_type"] == "named_library" or os.path.exists(three_col_ws_file):
+        # ensure names with spaces are not lost
+        info_file = os.path.join(input_details_dict["staging_dir"], "info.txt")
+        three_col_df = pd.read_csv(info_file, sep='\t', header=None)
+        three_col_df.columns = ["Ligand ID", "Names", "Smile String"]
+        # merge the names to the main dataframe
+        dff = pd.merge(three_col_df, dff, on="Ligand ID", how="left")
+        # drop any rows with nan if results were not generated but a name exists
+        dff = dff.dropna()
         dff["drugbank_database_URL"] = "https://go.drugbank.com/drugs/" + dff["Ligand ID"]
         dff["drugbank_database_link_html"] ='<a href="' + dff["drugbank_database_URL"] + '" target="_blank">' + dff['Names'] + '</a>'
-
     dff["smile_string"] = dff["Ligand ID"].map(input_ligand_dict)
     # path to ligand directory on workspace
     dff["ligand_dir_path"] = f"{url_base}/workspace{workspace_output_path}/.{workspace_output_name_url}/" + dff["protein"] + "/" + dff["Ligand ID"]
@@ -211,7 +244,6 @@ def parse_sample_results(input_details_dict, input_ligand_dict):
         )
 
         report_tmp = report_tmp.sort_values(by="Vinardo", ascending=True)
-        # if "Ligand Name" in report_tmp.columns:
         if "Drugbank Generic Name" in report_tmp.columns:
             report_tmp = report_tmp[[
                 "Ligand ID",  
@@ -244,8 +276,6 @@ def parse_sample_results(input_details_dict, input_ligand_dict):
             """.format(ligand_id_text=ligand_id_text, \
                     ligand_dir = ligand_dir, \
                     one_ligand_subtable_html=one_ligand_subtable_html, \
-                        # ligand_subtable_headers=ligand_subtable_headers, \
-                        # ligand_subtable_rows=ligand_subtable_rows, \
                         sml_str = sml_str)
         ligand_subtables += ligand_subtable_html
         ### END: Make the ligand subtables HTML ###
@@ -483,7 +513,6 @@ def write_html_report_all_ligands_invalid(input_details_dict, input_ligand_dict)
         protein_title = ""
         input_pdb = ""
         protein_text= ""
-    ## TO DO: in report refactor make this template less redundant 
     html_template_failed_job = """
     <!DOCTYPE html>
     <html lang="en">

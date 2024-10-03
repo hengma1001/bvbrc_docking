@@ -51,6 +51,9 @@ class DiffDock11Config(BaseModel):
         description="number of top N candidates for each protein-ligand pair",
     )
     batch_size: Optional[int] = Field(..., description="diffdock batch size")
+    num_gnina: Optional[int] = Field(
+        ..., description="number of gnina to run in parallel"
+    )
 
 
 class DiffDockPartialConfig(BaseModel):
@@ -66,4 +69,10 @@ class DiffDockPartialConfig(BaseModel):
     )
 
 
-DockConfig = Union[fredConfig, DiffDockConfig, DiffDock11Config, fredPartialConfig, DiffDockPartialConfig]
+DockConfig = Union[
+    fredConfig,
+    DiffDockConfig,
+    DiffDock11Config,
+    fredPartialConfig,
+    DiffDockPartialConfig,
+]

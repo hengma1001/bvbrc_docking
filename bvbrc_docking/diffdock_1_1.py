@@ -11,6 +11,7 @@
 
 import os
 import re
+from multiprocessing import Pool
 from operator import itemgetter
 
 import numpy as np
@@ -37,6 +38,7 @@ class diff_dock(object):
         output_dir,
         top_n: int = 1,
         batch_size: int = -1,
+        num_gnina: int = 5,
         cont_run=False,
         **kwargs,
     ) -> None:
@@ -45,6 +47,7 @@ class diff_dock(object):
         self.drug_dbs = os.path.abspath(drug_dbs)
         self.diffdock_dir = os.path.abspath(diffdock_dir)
         self.output_dir = os.path.abspath(output_dir)
+        self.num_gnina = num_gnina
         if cont_run:
             os.makedirs(self.output_dir, exist_ok=True)
         else:
@@ -111,16 +114,20 @@ class diff_dock(object):
 
         cmd_diffdock = [
             "python",
-            "-u", "-m", "inference",
-            "--config", f"{self.diffdock_dir}/default_inference_args.yaml",
-            "--protein_ligand_csv", self.all_runs,
-            "--out_dir", self.run_dir,
-            # "--bad_ligands", f"{self.run_dir}/bad-ligands.txt"
-            ]
+            "-u",
+            "-m",
+            "inference",
+            "--protein_ligand_csv",
+            self.all_runs,
+            "--out_dir",
+            self.run_dir,
+            "--bad_ligands",
+            f"{self.run_dir}/bad-ligands.txt",
+        ]
 
         if self.batch_size > 0:
             cmd_diffdock.extend(["--batch_size", str(self.batch_size)])
-            
+
         # the run failed with the original diffdock 1.0 parameters used:
         # f"--inference_steps 20 --samples_per_complex 40 --batch_size 6"
 
@@ -132,6 +139,21 @@ class diff_dock(object):
         #
         # Results are in directories named by the identifiers
         #
+        def cal_cnn_aff_p(sdf_file):
+            mol = cal_cnn_aff(
+                self.pdb_file,
+                sdf_file,
+                gnina_exe="gnina",
+                log_handle=None,
+            )
+            if mol is not None:
+                return [
+                    str(mol.data["CNNscore"]),
+                    str(mol.data["CNNaffinity"]),
+                    str(mol.data["minimizedAffinity"]),
+                ]
+            else:
+                return None
 
         for ident, smiles_str in tqdm(input_set):
             by_rank = []
@@ -169,24 +191,6 @@ class diff_dock(object):
 
             by_rank.sort(key=itemgetter(2))
 
-            # for idx, ent in enumerate(by_rank):
-            #     print(f"idx={idx} ent={ent}")
-            #     ident, file, rank, confidence = ent
-
-            #     #
-            #     # For the final output, we combine each of the
-            #     # docked ligand with the original PDF for easy viewing
-            #     #
-            #     # We need to convert the sdf to pdb first.
-            #     #
-            #     lig_pdb = sdf2pdb(file)
-
-            #     combined = comb_pdb(self.pdb_file, lig_pdb)
-            #     if combined is None:
-            #         by_rank.remove(ent)
-            #         continue
-            #     ent.append(combined)
-
             with open(f"{result_path}/result.csv", "w") as fp:
                 print(
                     "\t".join(
@@ -203,14 +207,15 @@ class diff_dock(object):
                     ),
                     file=fp,
                 )
-                for ident, path, rank, confidence, combined_path in by_rank:
-                    mol = cal_cnn_aff(
-                        self.pdb_file,
-                        path,
-                        f"{self.diffdock_dir}/gnina",
-                        log_handle=self.log_handle,
-                    )
-                    if mol is None:
+
+                with Pool(self.num_gnina) as p:
+                    scores = p.map(cal_cnn_aff_p, [i[1] for i in by_rank])
+
+                for entry, score in zip(by_rank, scores):
+                    ident, path, rank, confidence, combined_path = entry
+                    if score is not None:
+                        cnn_score, cnn_aff, vinardo = score
+                    else:
                         continue
                     print(
                         "\t".join(
@@ -220,27 +225,10 @@ class diff_dock(object):
                                 str(confidence),
                                 os.path.basename(path),
                                 os.path.basename(combined_path),
-                                str(mol.data["CNNscore"]),
-                                str(mol.data["CNNaffinity"]),
-                                str(mol.data["minimizedAffinity"]),
+                                cnn_score,
+                                cnn_aff,
+                                vinardo,
                             ]
                         ),
                         file=fp,
                     )
-
-        #     for j in range(self.top_n):
-        #         sdf = glob.glob(
-        #             f"{glob.escape(result_path)}/rank{j+1}_confidence-*.sdf"
-        #         )[0]
-        #         score = float(os.path.basename(sdf).split("-")[1][:-4])
-        #         local_dict = row.to_dict()
-        #         local_dict["lig_sdf"] = sdf
-        #         local_dict["score"] = score
-        #         local_dict["comp_pdb"] = comb_pdb(
-        #             local_dict["protein_path"], sdf2pdb(sdf)
-        #         )
-        #         output_df.append(local_dict)
-
-        # output_df = pd.DataFrame(output_df)
-        # output_df.to_csv(f"{self.run_dir}/result.csv")
-        # return output_df
