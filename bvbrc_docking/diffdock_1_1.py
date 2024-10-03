@@ -57,10 +57,11 @@ class diff_dock(object):
 
         self.top_n = top_n
         self.batch_size = batch_size
-        
 
-        self.env = os.environ.copy()
-        self.env['PYTHONPATH'] = self.diffdock_dir + ":" + self.env.get("PYTHONPATH", "")
+        # self.env = os.environ.copy()
+        # self.env["PYTHONPATH"] = (
+        #     self.diffdock_dir + ":" + self.env.get("PYTHONPATH", "")
+        # )
 
     def prepare_inputs(self):
         inputs = []
@@ -117,6 +118,8 @@ class diff_dock(object):
             "-u",
             "-m",
             "inference",
+            # "-c",
+            # f"{self.diffdock_dir}/default_inference_args.yaml",
             "--protein_ligand_csv",
             self.all_runs,
             "--out_dir",
@@ -132,7 +135,10 @@ class diff_dock(object):
         # f"--inference_steps 20 --samples_per_complex 40 --batch_size 6"
 
         proc = run_list_and_save(
-            cmd_diffdock, cwd=self.run_dir, output_file=self.log_handle, env=self.env
+            cmd_diffdock,
+            cwd=self.diffdock_dir,
+            output_file=self.log_handle,
+            # env=self.env,
         )
 
     def post_process(self, input_set):
