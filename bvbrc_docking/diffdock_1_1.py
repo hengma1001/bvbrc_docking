@@ -11,6 +11,7 @@
 
 import os
 import re
+from functools import partial
 from multiprocessing import Pool
 from operator import itemgetter
 
@@ -141,27 +142,27 @@ class diff_dock(object):
             # env=self.env,
         )
 
-    def cal_cnn_aff_p(self, sdf_file):
-        mol = cal_cnn_aff(
-            self.pdb_file,
-            sdf_file,
-            gnina_exe="gnina",
-            log_handle=None,
-        )
-        if mol is not None:
-            return [
-                str(mol.data["CNNscore"]),
-                str(mol.data["CNNaffinity"]),
-                str(mol.data["minimizedAffinity"]),
-            ]
-        else:
-            return None
+    # def cal_cnn_aff_p(self, sdf_file):
+    #     mol = cal_cnn_aff(
+    #         self.pdb_file,
+    #         sdf_file,
+    #         gnina_exe="gnina",
+    #         log_handle=None,
+    #     )
+    #     if mol is not None:
+    #         return (
+    #             str(mol.data["CNNscore"]),
+    #             str(mol.data["CNNaffinity"]),
+    #             str(mol.data["minimizedAffinity"]),
+    #         )
+    #     else:
+    #         return None
 
     def post_process(self, input_set):
         #
         # Results are in directories named by the identifiers
         #
-
+        cal_cnn_aff_p = partial(cal_cnn_aff, gnina_exe="gnina", log_handle=None)
         for ident, smiles_str in tqdm(input_set):
             by_rank = []
             result_path = f"{self.run_dir}/{ident}"
@@ -216,7 +217,9 @@ class diff_dock(object):
                 )
 
                 with Pool(self.num_gnina) as p:
-                    scores = p.map(self.cal_cnn_aff_p, [i[1] for i in by_rank])
+                    scores = p.starmap(
+                        cal_cnn_aff_p, [[self.pdb_file, i[1]] for i in by_rank]
+                    )
 
                 for entry, score in zip(by_rank, scores):
                     ident, path, rank, confidence, combined_path = entry

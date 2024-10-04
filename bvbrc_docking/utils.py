@@ -343,7 +343,11 @@ def cal_cnn_aff(pdb_file, sdf_file, gnina_exe="gnina", log_handle=None):
 
     try:
         mol = next(pybel.readfile("sdf", output_sdf))
-        return mol
+        return (
+            str(mol.data["CNNscore"]),
+            str(mol.data["CNNaffinity"]),
+            str(mol.data["minimizedAffinity"]),
+        )
     except Exception as e:
         print(f"Failed gnina run on {sdf_file} with {e}. ")
         return None
