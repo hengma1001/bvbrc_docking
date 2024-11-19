@@ -1,7 +1,10 @@
 {
-    "input_pdb": "1AH5",
     "ligand_library_type": "ws_file",
     "output_path": "/olson@patricbrc.org/home/test/test1/test2",
     "output_file": "asdfasdf",
+    "protein_input_type": "input_pdb",
+    "input_pdb": [
+        "1AH5"
+    ],
     "ligand_ws_file": "/olson@patricbrc.org/home/two.smi"
 }

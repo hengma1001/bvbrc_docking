@@ -1,0 +1,10 @@
+{
+    "ligand_library_type": "named_library",
+    "output_path": "/nbowers@bvbrc/home/kicking_the_tires",
+    "output_file": "upload_pdb_exemplar_drug_lib",
+    "protein_input_type": "user_pdb_file",
+    "user_pdb_file": [
+        "/olson@patricbrc.org/PATRIC-QA/applications/App-Docking/1XFC.pdb"
+    ],
+    "ligand_named_library": "small_db"
+}

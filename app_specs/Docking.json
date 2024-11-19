@@ -5,81 +5,95 @@
     "description": "Dock small molecules into protein structures",
   "default_memory": "100G",
     "parameters": [
-        {
-            "id": "input_pdb",
-            "label": "PDB identifiers for input proteins",
-            "allow_multiple": true,
-            "required": 1,
-            "default": null,
-            "type": "array"
-        },
-	{
-	    "id": "ligand_library_type",
-	    "label": "Type of ligand library to use: ws_file, named_library, smiles_list",
-	    "required": 1,
-	    "type": "string",
-	},
-	{
-	    "id": "ligand_named_library",
-	    "label": "Name of ligand library",
-	    "required": 0,
-	    "type": "string"
-	},
-	{
-	    "id": "ligand_smiles_list",
-	    "label": "Array of SMILES strings",
-	    "required": 0,
-	    "type": "array"
-	},
-	{
-	    "id": "ligand_ws_file",
-	    "label": "Workspace file containing SMILES strings",
-	    "required": 0,
-	    "type": "wsid"
-	},
-	{
-	    "id": "top_n",
-	    "label": "Return the top N results",
-	    "required": 0,
-	    "type": "int"
-	},
-	{
-	    "id": "batch_size",
-	    "label": "Diffdock batch size",
-	    "required": 1,
-		"default": 10,
-		"desc": "The batch size impacts Diff Dock preformance. The size is reset according to protein size in lib Docking Commpute pm.",
-	    "type": "int"
+		{
+		"id": "protein_input_type",
+		"label": "Type of pdb input to use: input_pdb, user_pdb_file",
+		"required": 1,
+		"type": "string",
+		},
+		{
+			"id": "input_pdb",
+			"label": "PDB identifiers for input proteins from the precomputed structures",
+			"allow_multiple": true,
+			"required": 0,
+			"default": null,
+			"type": "array"
+		},
+		{
+			"id": "user_pdb_file",
+			"label": "Workspace file containing an user provided PDB file for input proteins",
+			"allow_multiple": true,
+			"required": 0,
+			"default": null,
+			"type": "array"
+		},
+		{
+			"id": "ligand_library_type",
+			"label": "Type of ligand library to use: ws_file, named_library, smiles_list",
+			"required": 1,
+			"type": "string",
+		},
+		{
+			"id": "ligand_named_library",
+			"label": "Name of ligand library",
+			"required": 0,
+			"type": "string"
+		},
+		{
+			"id": "ligand_smiles_list",
+			"label": "Array of SMILES strings",
+			"required": 0,
+			"type": "array"
+		},
+		{
+			"id": "ligand_ws_file",
+			"label": "Workspace file containing SMILES strings",
+			"required": 0,
+			"type": "wsid"
+		},
+		{
+			"id": "top_n",
+			"label": "Return the top N results",
+			"required": 0,
+			"type": "int"
+		},
+		{
+			"id": "batch_size",
+			"label": "Diffdock batch size",
+			"required": 1,
+			"default": 10,
+			"desc": "The batch size impacts Diff Dock preformance. The size is reset according to protein size in lib Docking Commpute pm.",
+			"type": "int"
 
-	},
-        {
-            "id": "output_path",
-            "label": "Output Folder",
-            "required": 1,
-            "default": null,
-            "desc": "Path to which the output will be written. Defaults to the directory containing the input data.",
-            "type": "folder"
-        },
-        {
-            "id":"output_file",
-            "label":"File Basename",
-            "required": 1,
-            "default":null,
-            "desc":"Basename for the generated output files. Defaults to the basename of the input data.",
-            "type":"wsid"
-        },
-	{
-	    "id": "enable_debug",
-	    "label": "Enable debug?",
-	    "required": 0,
-	    "default": null,
-	    "desc": "If you wish debug statements to be printed for this job, enable this option.",
-	    "type": "bool"
-	},
-	{
-	    "id": "_tmpdir",
-	    "required": 0,
-	    "default": null
-	}
+		},
+			{
+				"id": "output_path",
+				"label": "Output Folder",
+				"required": 1,
+				"default": null,
+				"desc": "Path to which the output will be written. Defaults to the directory containing the input data.",
+				"type": "folder"
+			},
+			{
+				"id":"output_file",
+				"label":"File Basename",
+				"required": 1,
+				"default":null,
+				"desc":"Basename for the generated output files. Defaults to the basename of the input data.",
+				"type":"wsid"
+			},
+		{
+			"id": "enable_debug",
+			"label": "Enable debug?",
+			"required": 0,
+			"default": null,
+			"desc": "If you wish debug statements to be printed for this job, enable this option.",
+			"type": "bool"
+		},
+		{
+			"id": "_tmpdir",
+			"required": 0,
+			"default": null
+		}
     ]
 }

@@ -1,10 +1,10 @@
 {
     "ligand_library_type": "smiles_list",
     "output_path": "/olson@patricbrc.org/home/test/",
-    "output_file": "3I12_DR47_free_text",
-    "protein_input_type": "input_pdb",
-    "input_pdb": [
-        "3I12"
+    "output_file": "upload_pdb_free_text",
+    "protein_input_type": "user_pdb_file",
+    "user_pdb_file": [
+        "/olson@patricbrc.org/PATRIC-QA/applications/App-Docking/1XFC.pdb"
     ],
     "ligand_smiles_list": [
         [

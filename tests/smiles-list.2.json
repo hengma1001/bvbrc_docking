@@ -1,16 +1,23 @@
 {
-    "input_pdb": "1AH5",
     "ligand_library_type": "smiles_list",
     "output_path": "/olson@patricbrc.org/home/test/test1/test2",
     "output_file": "asdfasdf",
+    "protein_input_type": "input_pdb",
+    "input_pdb": [
+        "1AH5"
+    ],
     "ligand_smiles_list": [
-	[
-	    "smil1",
-	    "CCc1c(c(nc([nH+]1)N)N)c2ccc(cc2)NCc3cc(cc(c3)F)F"
-	],
-	[
-	    "CCc1c(c(nc([nH+]1)N)N)c2ccc3c(c2)N(CCC3)CCCOC"
-	],
-	"CCc1c(c(nc([nH+]1)N)N)c2ccc3c(c2)N(CCC3)CCCOC"
+        [
+            "smil1",
+            "CCc1c(c(nc([nH+]1)N)N)c2ccc(cc2)NCc3cc(cc(c3)F)F"
+        ],
+        [
+            "id-2",
+            "CCc1c(c(nc([nH+]1)N)N)c2ccc3c(c2)N(CCC3)CCCOC"
+        ],
+        [
+            "id-3",
+            "CCc1c(c(nc([nH+]1)N)N)c2ccc3c(c2)N(CCC3)CCCOC"
+        ]
     ]
 }

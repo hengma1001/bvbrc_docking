@@ -48,7 +48,9 @@ def check_RDKit_invalid_ligands(input_details_dict):
 
 def check_dd_invalid_ligands(input_details_dict, input_ligand_dict):
     # check if the bad ligands file exists
-    lig_failed_diffdock = os.path.join(input_details_dict["work_dir"], input_details_dict["params"]["input_pdb"][0], "out", "bad-ligands.txt")
+    keys = list(input_details_dict['results'].keys())
+    input_pdb = keys[0] # TO DO Update to iterate through the list 
+    lig_failed_diffdock = os.path.join(input_details_dict["work_dir"], input_pdb, "out", "bad-ligands.txt")
     # add an if file exists because this function may be used if all ligands are invalid and diff dock never runs
     path = Path(lig_failed_diffdock)
     # Check if the file exists and is not empty
@@ -67,7 +69,9 @@ def check_dd_invalid_ligands(input_details_dict, input_ligand_dict):
         three_col_ws_file = os.path.join(input_details_dict["staging_dir"],"three_col_ws_file.txt")
         if input_details_dict["params"]["ligand_library_type"] == "named_library" or os.path.exists(three_col_ws_file):
             # if names are available  match them up with the data
-            three_col_df = pd.read_csv(three_col_ws_file, sep='\t', header=None)
+            #three_col_df = pd.read_csv(three_col_ws_file, sep='\t', header=None)
+            info_file = os.path.join(input_details_dict["staging_dir"], "info.txt")
+            three_col_df = pd.read_csv(info_file, sep='\t', header=None)
             three_col_df.columns = ["Ligand ID", "Names_col", "Smile String"]
             df_dd_failed_ligands = pd.merge(three_col_df, df_dd_failed_ligands, on="Ligand ID", how="left")
             # drop any rows where names exist but they aren't dd failed ligands
@@ -302,8 +306,14 @@ def parse_sample_results(input_details_dict, input_ligand_dict):
 def write_html_report(bvbrc_logo_path, main_table, ligand_subtables, input_details_dict, input_ligand_dict):
     base64_string = image_to_base64(bvbrc_logo_path)
     bvbrc_logo_base64 = f'<div class="image-container"><img src="data:image/png;base64,{base64_string}" alt="Embedded Image"></div>'
-    protein_title = input_details_dict["proteins"][0]["title"]
-    input_pdb = input_details_dict["params"]["input_pdb"][0]
+    if input_details_dict["params"]["protein_input_type"] == "input_pdb":
+        print("Title exists:", input_details_dict['proteins'][0]['title'])
+        protein_title = input_details_dict['proteins'][0]['title']
+    else:
+        print("Protein Title is not provided, using place holder")
+        protein_title = "User entered protein"
+    keys = list(input_details_dict['results'].keys())
+    input_pdb = keys[0] # TO DO Update to iterate through the list 
     # check for invalid ligands
     rdkit_failed_ligands_html = check_RDKit_invalid_ligands(input_details_dict)
     dd_failed_ligands_html = check_dd_invalid_ligands(input_details_dict, input_ligand_dict)
@@ -496,10 +506,14 @@ def write_html_report_all_ligands_invalid(input_details_dict, input_ligand_dict)
     bvbrc_logo_base64 = f'<div class="image-container"><img src="data:image/png;base64,{base64_string}" alt="Embedded Image"></div>'
     rdkit_failed_ligands_html = check_RDKit_invalid_ligands(input_details_dict)
     dd_failed_ligands_html = check_dd_invalid_ligands(input_details_dict, input_ligand_dict)
-
     if "proteins" in input_details_dict.keys():
-        protein_title = input_details_dict["proteins"][0]["title"]
-        input_pdb = input_details_dict["params"]["input_pdb"][0]
+        if 'proteins' in input_details_dict and 'title' in input_details_dict['proteins']:
+            print("Title exists:", my_dict['proteins']['title'])
+        else:
+            print("Protein Title is not provided, using place holder")
+            protein_title = "User entered protein"
+            keys = list(input_details_dict['results'].keys())
+            input_pdb = keys[0] # TO DO Update to iterate through the list 
         protein_text = """
     <p> Zero ligands successfully bound to the given protein:
         <br>
@@ -597,7 +611,8 @@ def report_setup(argv):
     # Parse the JSON content
     input_details_dict = json.loads(file_content)
     work_dir = input_details_dict["work_dir"]
-    input_pdb = input_details_dict["params"]["input_pdb"][0]
+    keys = list(input_details_dict['results'].keys())
+    input_pdb = keys[0] # TO DO Update to iterate through the list 
     input_details_dict["sample_results"]  = glob.glob("{}/{}/out/*/result.csv".format(work_dir, input_pdb))
     if len(input_details_dict["sample_results"]) == 0:
         print('All ligands were marked as invalid by check input smile strings')
@@ -621,6 +636,6 @@ def main(argv):
         main_table = ligand_dict["main_table_html"]
         bvbrc_logo_path = input_details_dict["bvbrc_logo"]
         write_html_report(bvbrc_logo_path, main_table, ligand_subtables, input_details_dict, input_ligand_dict)
-
+    print('end of report script')
 if __name__ == "__main__":
     main(sys.argv)

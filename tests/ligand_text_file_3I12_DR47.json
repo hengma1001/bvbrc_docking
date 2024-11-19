@@ -1,9 +1,10 @@
 {
-    "input_pdb": [
-        "3I12"
-    ],
     "ligand_library_type": "ws_file",
     "output_path": "/olson@patricbrc.org/home/test/",
     "output_file": "3I12_DR47_ws_file",
+    "protein_input_type": "input_pdb",
+    "input_pdb": [
+        "3I12"
+    ],
     "ligand_ws_file": "/olson@patricbrc.org/home/two.smi"
 }

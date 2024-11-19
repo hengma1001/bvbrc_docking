@@ -1,47 +1,51 @@
 {
-    "input_pdb": [
-        "3I12"
-    ],
     "ligand_library_type": "smiles_list",
     "output_path": "/olson@patricbrc.org/home/test/",
     "output_file": "3I12_bad_ligands",
+    "protein_input_type": "input_pdb",
+    "input_pdb": [
+        "3I12"
+    ],
     "ligand_smiles_list": [
         [
             "DR47",
             "COC1=CC2=C(C=C1)N(C(=O)C1=CC=C(Cl)C=C1)C(C)=C2CC(=O)OCC(O)=O"
         ],
-	[
-
-	    "DB01633",
-	    "[H][C@]1(F)[C@@H](O)O[C@H](CO)[C@@H](O[C@@H]2O[C@H](CO)[C@@H](O[C@@H]3O[C@H](CO)[C@@H](O)[C@H](O)[C@H]3O)[C@H](O)[C@H]2O)[C@@H]1O"
-	],
-	[
-	    "DB01641",
-	    "[H]N([H])C1=C2C(\\C=C3/N=C(N(CC(O)=O)C3=O)[C@@]([H])(N([H])[H])[C@@]([H])(C)O)=CN([H])C2=CC=C1"
-	],
-	[
-	    "DB01649",
-	    "CN1C=[N+]([C@@H]2O[C@H](CO[P@](O)(=O)O[P@](O)(=O)O[P@](O)(=O)OC[C@H]3O[C@H]([C@H](O)[C@@H]3O)N3C=NC4=C(N)N=CN=C34)[C@@H](O)[C@H]2O)C2=C1C(=O)N=C(N)N2"
-	],
-	[
-	    "DB01652",
-	    "CC(C)(COP(O)(=O)OP(O)(=O)OC[C@H]1O[C@H]([C@H](O)[C@@H]1OP(O)(O)=O)N1C=NC2=C1N=CN=C2N)[C@@H](O)C(=O)NCCC(=O)NCCSC(=O)C1=CC=C(O)C=C1"
-	],
-	[
-	    "DB01661",
-	    "O[C@@H]1[C@@H](COP(O)(=O)OP(O)(=O)OP(O)(O)=O)O[C@H]([C@@H]1O)N1C=NC2=C1N=CN(C1O[C@H](COP(O)(O)=O)[C@@H](O)[C@H]1O)C2=N"
-	],
-	[
-	    "DB01663",
-	    "CC1=CC2=C3C=C(CCCCCCCCC(=O)N[C@H]4[C@H]5C[C@@H]6C[C@@H](C[C@H]4C6)C5)C=CN3[Ru++]34(N5C=CC=CC5=C5C=CC=CN35)(N3C=CC=CC3=C3C=CC=CN43)N2C=C1"
-	],
-	[
-	    "DB01665",
-	    "NC1N=C2C=CC=CC2=N1"
-	],
-	[
-	    "DB01666",
-	    "[H][C@]1(OS(O)(=O)=O)[C@]([H])(OS(O)(=O)=O)[C@@]([H])(OS(O)(=O)=O)[C@]([H])(OS(O)(=O)=O)[C@]([H])(OS(O)(=O)=O)[C@]1([H])OS(O)(=O)=O"
-	]
+        [
+            "DB01633",
+            "[H][C@]1(F)[C@@H](O)O[C@H](CO)[C@@H](O[C@@H]2O[C@H](CO)[C@@H](O[C@@H]3O[C@H](CO)[C@@H](O)[C@H](O)[C@H]3O)[C@H](O)[C@H]2O)[C@@H]1O"
+        ],
+        [
+            "DB01641",
+            "[H]N([H])C1=C2C(\\\\C=C3/N=C(N(CC(O)=O)C3=O)[C@@]([H])(N([H])[H])[C@@]([H])(C)O)=CN([H])C2=CC=C1"
+        ],
+        [
+            "DB01649",
+            "CN1C=[N+]([C@@H]2O[C@H](CO[P@](O)(=O)O[P@](O)(=O)O[P@](O)(=O)OC[C@H]3O[C@H]([C@H](O)[C@@H]3O)N3C=NC4=C(N)N=CN=C34)[C@@H](O)[C@H]2O)C2=C1C(=O)N=C(N)N2"
+        ],
+        [
+            "DB01652",
+            "CC(C)(COP(O)(=O)OP(O)(=O)OC[C@H]1O[C@H]([C@H](O)[C@@H]1OP(O)(O)=O)N1C=NC2=C1N=CN=C2N)[C@@H](O)C(=O)NCCC(=O)NCCSC(=O)C1=CC=C(O)C=C1"
+        ],
+        [
+            "DB01661",
+            "O[C@@H]1[C@@H](COP(O)(=O)OP(O)(=O)OP(O)(O)=O)O[C@H]([C@@H]1O)N1C=NC2=C1N=CN(C1O[C@H](COP(O)(O)=O)[C@@H](O)[C@H]1O)C2=N"
+        ],
+        [
+            "DB01663",
+            "CC1=CC2=C3C=C(CCCCCCCCC(=O)N[C@H]4[C@H]5C[C@@H]6C[C@@H](C[C@H]4C6)C5)C=CN3[Ru++]34(N5C=CC=CC5=C5C=CC=CN35)(N3C=CC=CC3=C3C=CC=CN43)N2C=C1"
+        ],
+        [
+            "DB01665",
+            "CC1=CC2=C3C=C(CCCCCCCCC(=O)N[C@H]4[C@H]5C[C@@H]6C[C@@H](C[C@H]4C6)C5)C=CN3[Ru++]34(N5C=CC=CC5=C5C=CC=CN35)(N3C=CC=CC3=C3C=CC=CN43)N2C=C1"
+        ],
+        [
+            "DB01665",
+            "NC1N=C2C=CC=CC2=N1"
+        ],
+        [
+            "DB01666",
+            "[H][C@]1(OS(O)(=O)=O)[C@]([H])(OS(O)(=O)=O)[C@@]([H])(OS(O)(=O)=O)[C@]([H])(OS(O)(=O)=O)[C@]([H])(OS(O)(=O)=O)[C@]1([H])OS(O)(=O)=O"
+        ]
     ]
 }

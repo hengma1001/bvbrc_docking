@@ -43,8 +43,6 @@ sub run
     #
     # Set up work and staging directories.
     # 
-    #
-
     $self->app($app);
     $self->params($params);
 
@@ -103,39 +101,95 @@ sub run
     #
     $params->{ligand_file} = $ligand_file; # all ligand inputs are written to file
     $self -> {params} = $params;
-
+    # 
+    my @out;
     #
-    # Stage the PDB data
+    # Add flexibility to add proteins from PDB selector and via PDB file upload
     #
+    if ($params->{protein_input_type} eq 'input_pdb')
+        {
+        #
+        # Stage the PDB data
+        #
+        my @pdb_list = $self->stage_pdb($params->{input_pdb});
 
-    my @pdb_list = $self->stage_pdb($params->{input_pdb});
+        #
+        # And compute
+        #
 
-    #
-    # And compute
-    #
+        for my $pdb (@pdb_list)
+            {
+            my $work = "$work_dir/$pdb->{pdb_id}";
+            make_path($work);
+            chdir($work);
+            $self->compute_pdb($pdb, $ligand_file, $work);
+            $self->write_report(\@pdb_list);
+            $self->save_output_files($app, $output_dir);
+            }
+        }
+        elsif ($params->{protein_input_type} eq 'user_pdb_file')
+        {
+            print(Dumper $params);
+            my @ws_pdb_file_list = @{$params->{user_pdb_file}};
+            # wrap into a function # stage_ws_pdb
+            foreach my $pdb_ws_file (@ws_pdb_file_list) {
+                my @parts = split('/', $pdb_ws_file);
+                # Get the last element in the array (the file name)
+                my $filename = $parts[-1];  
+                my @cmd = ("p3-cp", "ws:" . $pdb_ws_file, $self->staging_dir . "/" . basename($filename));
+                    print STDERR "Copying the workspace pdb file to stagging dir... @cmd\n";
+                    my $ok = IPC::Run::run(\@cmd);
+                    if (!$ok)
+                        {
+                        warn "Error $? copying output with @cmd\n";
+                        }
+                my $pdb_file = $self->staging_dir . "/" . basename($filename);
+                my $protein_id;
+                # NB TO DO
+                # 1. check the header, if it is not in the header, use file name 
+                # 2. Change for grabbing the last 4 of the header row
+                # open the file, get the header (final item in the first row)
+                # 3. edit function for when zero ligands are docked
+                open (my $fh, '<', $pdb_file) or die "Could not open file '$pdb_file' $!";
+                while (my $line = <$fh>) {
+                    # Look for the HEADER line
+                    if ($line =~ /^HEADER/)
+                    {
+                        ### OPTION 1 GET THE LAST FOR CHARACTESR OF THE LINE ###
+                        # Uniprot uses a standard file width format
+                        # Extract the protein ID from the last 4 characters of the line
+                        $protein_id = substr($line, 62, 4);
+                        last;  # Exit the loop after finding the HEADER line
+                    }
+                    # else ### OPTION 2 GET the filename ###
+                    # {
+                    # }
+                } 
+                close($fh);
 
-    for my $pdb (@pdb_list)
-    {
-	my $work = "$work_dir/$pdb->{pdb_id}";
-	make_path($work);
-	chdir($work);
-	$self->compute_pdb($pdb, $ligand_file, $work);
+                # Check if protein ID is defined and valid
+                if (defined $protein_id && $protein_id ne '') {
+                    print "Protein ID: $protein_id\n";
+                } else {
+                    die "Protein ID $protein_id is not set or empty!";
+                }
+                my $work = "$work_dir/$protein_id";
+                make_path($work) or die "Could not create directory'$work': $!";
 
-    }
-
-    #
-    # Write report
-    #
-
-    $self->write_report(\@pdb_list);
-
-    $self->save_output_files($app, $output_dir);
-    
-    if (!$params->{enable_debug})
-    {
-	# rmtree($tmp_dir);
-    }
+                chdir($work);
+                # # make pdb object to match the rest of the code
+                my $pdb = {
+                    "local_path" => $pdb_file,
+                    "pdb_id" => $protein_id,
+                };
+                $self->compute_pdb($pdb, $ligand_file, $work);
+                $self->write_report($pdb);
+                $self->save_output_files($app, $output_dir);
+                }
+        }
+    return @out;
 }
+
 
 sub write_zero_valid_ligands_report
 {
@@ -231,14 +285,6 @@ sub write_report
     }
 }
 
-#
-# Compute one PDB.
-#
-# We write output for this PDB into $output_dir/$pdb_id.
-#
-# We've already chdir'd to $work_dir.
-#
-
 sub compute_pdb
 {
     my($self, $pdb, $ligand_file, $work_dir) = @_;
@@ -321,7 +367,9 @@ sub compute_pdb
 
 	
 	my $result_data = csv(in => "$work_out/$ligand/result.csv", headers => 'auto', sep_char => "\t");
+    print("line 528");
 	$_->{output_folder} = "$pdb->{pdb_id}/$ligand" foreach @$result_data;
+    print("line 530");
 	$self->{result_data}->{$pdb->{pdb_id}}->{$ligand} = $result_data;
     }
 }
@@ -403,7 +451,6 @@ sub load_ligand_smiles
     close(VF);
 
     if (-e $validated_ligands_file) { # Check if file exists
-        # Nicole check here for the ligand file?
         if (-s $validated_ligands_file == 0) {  # Check if the file size is zero
             if (-f "$staging_dir/invalid_smile_strings.txt" && -s "$staging_dir/invalid_smile_strings.txt") {
                     # run the report script
@@ -411,7 +458,7 @@ sub load_ligand_smiles
                     my $output = $self->output_dir;
                     my $workspace_output_path = $self->params->{output_path} . "/." . $self->params->{output_file};
                     my @cmd = ("p3-cp", "--overwrite", "$output/small_molecule_docking_report.html", "ws:" . $workspace_output_path);
-                    print STDERR "saving files to workspace... @cmd\n";
+                    print STDERR "saving report to workspace... @cmd\n";
                     my $ok = IPC::Run::run(\@cmd);
                     if (!$ok)
                         {
@@ -530,10 +577,11 @@ sub load_ligand_ws_file
 sub stage_pdb
 {
     my($self, $pdb_list) = @_;
-
+    
     my $qry = join(",", @$pdb_list);
     my @res = $self->api->query('protein_structure', ['in', 'pdb_id', '(' . $qry . ')'], ['select', 'pdb_id,gene,product,method,patric_id,title,file_path']);
 
+    print Dumper(@res);
     my %res = map { ($_->{pdb_id} => $_ ) } @res;
 
     my @out;
@@ -557,6 +605,7 @@ sub stage_pdb
     }
     return @out;
 }
+
 
 sub preflight
 {

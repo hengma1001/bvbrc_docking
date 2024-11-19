@@ -24,8 +24,10 @@ use File::Basename;
 use File::Temp;
 use JSON::XS;
 use Getopt::Long::Descriptive;
-use DockingCompute;
+# use DockingCompute;
+use lib '/home/nbowers/bvbrc-dev/dev_container/modules/bvbrc_docking/lib/';  # Adjust this path if necessary
 
+use DockingCompute qw(my_function);  # Import the desired function
 my $docking_compute = new DockingCompute();
 
 my $app = Bio::KBase::AppService::AppScript->new(sub { $docking_compute->run(@_); },
